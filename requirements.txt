@@ -1,6 +1,0 @@
-Flask==2.3.3
-twilio==8.10.0
-schedule==1.2.0
-threading
-datetime
-json

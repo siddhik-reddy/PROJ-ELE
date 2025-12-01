@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BADSI SARPANCH Campaign Bot</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        whatsapp: '#25D366',
+                        whatsappDark: '#128C7E',
+                        primary: '#3b82f6',
+                        secondary: '#1f2937',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for better aesthetics */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #9ca3af;
+            border-radius: 20px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #f3f4f6;
+            border-radius: 20px;
+        }
+        .card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-whatsappDark text-white p-4 shadow-lg sticky top-0 z-10">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight">
+                <i class="fab fa-whatsapp mr-2"></i> Campaign Dashboard
+            </h1>
+            <div id="bot-name" class="text-sm font-light opacity-80">
+                BADSI SARPANCH ELECTIONS
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 lg:p-8">
+        <div id="message-box" class="fixed top-20 right-4 z-50 w-full max-w-xs transition-all duration-300">
+            <!-- Dynamic alerts go here -->
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- COLUMN 1: STATUS & CONTACT MANAGEMENT (LG: 1/3) -->
+            <div class="lg:col-span-1 space-y-6">
+                
+                <!-- Connection Status Card -->
+                <div class="card bg-white p-6 rounded-xl">
+                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-whatsapp" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Bot Connection Status
+                    </h2>
+                    <div id="status-display" class="space-y-3">
+                        <p class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Status:</span>
+                            <span id="client-ready" class="font-bold text-sm px-3 py-1 rounded-full">Connecting...</span>
+                        </p>
+                        <p class="flex justify-between items-center">
+                            <span class="font-medium text-gray-700">Total Contacts:</span>
+                            <span id="total-numbers" class="font-bold text-lg text-primary">0</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Contact Management Card -->
+                <div class="card bg-white p-6 rounded-xl">
+                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-3m0 0v-5m0 5h-3m-12-3l4-4m2 2l4-4m2-2l4-4m-2-2L4 20"></path></svg>
+                        Add Contacts (Indian Format: 91XXXXXXXXXX)
+                    </h2>
+                    <textarea id="numbers-input" rows="5" placeholder="Enter one phone number per line, e.g., 919876543210" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"></textarea>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3 mt-3">
+                        <select id="party-select-add" class="flex-grow p-3 border border-gray-300 bg-white rounded-lg focus:ring-primary focus:border-primary">
+                            <option value="ALL">ALL Contacts</option>
+                            <option value="CONGRESS">CONGRESS</option>
+                            <option value="BJP">BJP</option>
+                            <option value="BRS">BRS</option>
+                        </select>
+                        <button onclick="addNumbers()" id="add-numbers-btn" class="bg-primary hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-150 transform hover:scale-[1.02]">
+                            Add to List
+                        </button>
+                    </div>
+                    <button onclick="clearAllNumbers()" class="text-sm text-red-500 hover:text-red-700 mt-2 block w-full text-center">Clear ALL Contact Lists</button>
+                </div>
+
+                <!-- Party Stats Card -->
+                <div class="card bg-white p-6 rounded-xl">
+                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-whatsappDark" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3-.895-3-2 1.343-2 3-2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.839A10.025 10.025 0 0112 4c4.418 0 8 3.582 8 8z"></path></svg>
+                        Party Distribution
+                    </h2>
+                    <ul id="party-stats-list" class="space-y-2 text-gray-600">
+                        <!-- Stats injected here -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- COLUMN 2: MESSAGE AND MEDIA SETUP (LG: 1/3) -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Message Setup Card -->
+                <div class="card bg-white p-6 rounded-xl">
+                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10M7 16h7M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2h-4"></path></svg>
+                        Campaign Message
+                    </h2>
+                    <textarea id="campaign-message-input" rows="5" placeholder="Enter your main campaign message here..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"></textarea>
+                    <button onclick="setMessage()" id="set-message-btn" class="w-full bg-whatsapp hover:bg-green-600 text-white font-semibold py-2 mt-3 rounded-lg transition duration-150">
+                        Save Message
+                    </button>
+                    <p id="current-message-status" class="text-sm mt-2 text-gray-500"></p>
+                </div>
+
+                <!-- Media Upload Card -->
+                <div class="card bg-white p-6 rounded-xl">
+                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        Campaign Media (Image or Audio)
+                    </h2>
+
+                    <!-- Image Upload -->
+                    <div class="mb-4 p-3 border-2 border-dashed border-gray-200 rounded-lg">
+                        <label for="image-upload" class="block text-sm font-medium text-gray-700 mb-1">Upload Image (JPG/PNG)</label>
+                        <input type="file" id="image-upload" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                        <div id="image-status" class="text-sm mt-2 flex justify-between items-center text-gray-500">
+                            <span>Status: No image set</span>
+                            <button onclick="clearMedia('image')" class="text-red-500 hover:text-red-700 text-xs hidden" id="clear-image-btn">Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- Audio Upload -->
+                    <div class="p-3 border-2 border-dashed border-gray-200 rounded-lg">
+                        <label for="audio-upload" class="block text-sm font-medium text-gray-700 mb-1">Upload Audio (MP3/WAV)</label>
+                        <input type="file" id="audio-upload" accept="audio/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-500/10 file:text-purple-600 hover:file:bg-purple-500/20 cursor-pointer">
+                        <div id="audio-status" class="text-sm mt-2 flex justify-between items-center text-gray-500">
+                            <span>Status: No audio set</span>
+                            <button onclick="clearMedia('audio')" class="text-red-500 hover:text-red-700 text-xs hidden" id="clear-audio-btn">Clear</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Campaign Launch Card -->
+                <div class="card bg-white p-6 rounded-xl border-t-4 border-whatsapp">
+                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-whatsapp" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        Launch Campaign
+                    </h2>
+                    
+                    <div class="space-y-3">
+                        <label for="campaign-party" class="block text-sm font-medium text-gray-700">Target Party</label>
+                        <select id="campaign-party" class="w-full p-3 border border-gray-300 bg-white rounded-lg focus:ring-whatsapp focus:border-whatsapp">
+                            <option value="ALL">ALL Contacts</option>
+                            <option value="CONGRESS">CONGRESS</option>
+                            <option value="BJP">BJP</option>
+                            <option value="BRS">BRS</option>
+                        </select>
+                        
+                        <label for="campaign-type" class="block text-sm font-medium text-gray-700 pt-2">Campaign Type</label>
+                        <select id="campaign-type" class="w-full p-3 border border-gray-300 bg-white rounded-lg focus:ring-whatsapp focus:border-whatsapp">
+                            <option value="text">Text Only</option>
+                            <option value="image" disabled>Image + Caption (Upload required)</option>
+                            <option value="audio" disabled>Audio/Voice Note (Upload required)</option>
+                        </select>
+                        
+                        <button onclick="sendCampaign()" id="send-campaign-btn" class="w-full bg-whatsapp hover:bg-whatsappDark text-white font-extrabold py-3 mt-4 rounded-lg transition duration-150 transform hover:scale-[1.02] disabled:opacity-50" disabled>
+                            SEND CAMPAIGN
+                        </button>
+                    </div>
+                    <p id="campaign-summary" class="text-xs text-center text-gray-500 mt-3"></p>
+                </div>
+            </div>
+
+            <!-- COLUMN 3: LOGS & RESULTS (LG: 1/3) -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Log Console Card -->
+                <div class="card bg-gray-900 p-6 rounded-xl text-white">
+                    <h2 class="text-xl font-semibold text-whatsapp mb-4 flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L12 15m0 0l2.25 2m-2.25-2V7m6 14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2z"></path></svg>
+                        Campaign Log
+                    </h2>
+                    <div id="log-console" class="h-96 bg-black p-3 rounded-lg text-xs font-mono overflow-y-auto custom-scrollbar">
+                        <p class="text-gray-500">Awaiting status update from backend...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Font Awesome for Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js" crossorigin="anonymous"></script>
+
+    <script>
+        const API_URLS = {
+            STATUS: '/status',
+            ADD_NUMBERS: '/add-numbers',
+            UPLOAD_IMAGE: '/upload-image',
+            UPLOAD_AUDIO: '/upload-audio',
+            SET_MESSAGE: '/set-message',
+            SEND_CAMPAIGN: '/send-campaign',
+            CLEAR_MEDIA: '/clear-media',
+            CLEAR_NUMBERS: '/clear-numbers'
+        };
+
+        let isClientReady = false;
+        let hasMessage = false;
+        let hasImage = false;
+        let hasAudio = false;
+
+        // --- UTILITY FUNCTIONS ---
+
+        /**
+         * Shows a temporary, styled notification message.
+         * @param {string} message The text content of the alert.
+         * @param {string} type 'success', 'error', or 'info'.
+         */
+        function showAlert(message, type = 'info') {
+            const box = document.getElementById('message-box');
+            
+            let bgColor, borderColor;
+            switch (type) {
+                case 'success':
+                    bgColor = 'bg-green-100 border-green-400 text-green-700';
+                    borderColor = 'border-l-4';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-100 border-red-400 text-red-700';
+                    borderColor = 'border-l-4';
+                    break;
+                case 'info':
+                default:
+                    bgColor = 'bg-blue-100 border-blue-400 text-blue-700';
+                    borderColor = 'border-l-4';
+                    break;
+            }
+
+            const alertHtml = `
+                <div class="p-4 rounded-lg mb-4 ${bgColor} ${borderColor} shadow-lg" role="alert">
+                    <p class="font-bold">${type.charAt(0).toUpperCase() + type.slice(1)}</p>
+                    <p class="text-sm">${message}</p>
+                </div>
+            `;
+            
+            const newAlert = document.createElement('div');
+            newAlert.innerHTML = alertHtml;
+            box.prepend(newAlert);
+
+            // Automatically remove after 5 seconds
+            setTimeout(() => {
+                newAlert.classList.add('opacity-0', 'scale-95');
+                newAlert.addEventListener('transitionend', () => newAlert.remove());
+            }, 5000);
+        }
+
+        /**
+         * Adds a message to the campaign log console.
+         * @param {string} message The log message.
+         * @param {string} color Tailwind text color class (e.g., 'text-green-400').
+         */
+        function log(message, color = 'text-gray-400') {
+            const logConsole = document.getElementById('log-console');
+            const timestamp = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const logEntry = document.createElement('p');
+            logEntry.className = `${color} mb-1`;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logConsole.appendChild(logEntry);
+            // Scroll to the bottom
+            logConsole.scrollTop = logConsole.scrollHeight;
+        }
+
+        // --- API & DATA FETCHING ---
+
+        /**
+         * Fetches and updates the overall dashboard status.
+         */
+        async function updateDashboard() {
+            log('Fetching bot status...');
+            try {
+                const response = await fetch(API_URLS.STATUS);
+                const data = await response.json();
+
+                if (!data.ready) {
+                    log('Client is not ready. Scan QR code (check server console).', 'text-yellow-400');
+                } else {
+                    log('Client is connected and ready.', 'text-green-400');
+                }
+
+                // Update global state
+                isClientReady = data.ready;
+                hasMessage = data.hasMessage;
+                hasImage = data.hasImage;
+                hasAudio = data.hasAudio;
+
+                // 1. Connection Status UI
+                const readyText = document.getElementById('client-ready');
+                readyText.textContent = isClientReady ? 'CONNECTED' : 'DISCONNECTED';
+                readyText.className = `font-bold text-sm px-3 py-1 rounded-full ${isClientReady ? 'bg-whatsapp/20 text-whatsapp' : 'bg-red-500/20 text-red-500'}`;
+                
+                // 2. Numbers Status UI
+                document.getElementById('total-numbers').textContent = data.totalNumbers;
+                
+                // 3. Party Stats UI
+                const statsList = document.getElementById('party-stats-list');
+                statsList.innerHTML = '';
+                Object.keys(data.partyStats).forEach(party => {
+                    const count = data.partyStats[party];
+                    const listItem = document.createElement('li');
+                    listItem.className = 'flex justify-between items-center border-b border-gray-100 py-1';
+                    listItem.innerHTML = `
+                        <span class="font-medium">${party}</span>
+                        <span class="font-bold text-lg">${count}</span>
+                    `;
+                    statsList.appendChild(listItem);
+                });
+
+                // 4. Content Status UI
+                document.getElementById('current-message-status').textContent = hasMessage ? 'Message set.' : 'No message set.';
+                
+                // Image Status
+                const imageStatusEl = document.getElementById('image-status').querySelector('span');
+                imageStatusEl.textContent = hasImage ? 'Status: Image file uploaded.' : 'Status: No image set';
+                document.getElementById('clear-image-btn').classList.toggle('hidden', !hasImage);
+                
+                // Audio Status
+                const audioStatusEl = document.getElementById('audio-status').querySelector('span');
+                audioStatusEl.textContent = hasAudio ? 'Status: Audio file uploaded.' : 'Status: No audio set';
+                document.getElementById('clear-audio-btn').classList.toggle('hidden', !hasAudio);
+                
+                // 5. Campaign Launch Controls
+                updateCampaignOptions();
+
+            } catch (error) {
+                log(`Failed to fetch status: ${error.message}`, 'text-red-500');
+                showAlert('Could not connect to backend server.', 'error');
+            }
+        }
+
+        /**
+         * Updates the available campaign types and enables the send button.
+         */
+        function updateCampaignOptions() {
+            const typeSelect = document.getElementById('campaign-type');
+            const sendBtn = document.getElementById('send-campaign-btn');
+            
+            const totalNumbers = parseInt(document.getElementById('total-numbers').textContent);
+
+            // Reset options
+            typeSelect.querySelector('option[value="image"]').disabled = true;
+            typeSelect.querySelector('option[value="audio"]').disabled = true;
+
+            // Enable based on media presence
+            if (hasImage) {
+                typeSelect.querySelector('option[value="image"]').disabled = false;
+            }
+            if (hasAudio) {
+                typeSelect.querySelector('option[value="audio"]').disabled = false;
+            }
+
+            // Enable/Disable Send button
+            const canSend = isClientReady && hasMessage && totalNumbers > 0;
+            sendBtn.disabled = !canSend;
+            
+            if (canSend) {
+                document.getElementById('campaign-summary').textContent = 'Ready to launch campaign.';
+            } else {
+                let reasons = [];
+                if (!isClientReady) reasons.push('Bot disconnected');
+                if (!hasMessage) reasons.push('Message missing');
+                if (totalNumbers === 0) reasons.push('No contacts');
+                document.getElementById('campaign-summary').textContent = `Disabled: ${reasons.join(', ')}.`;
+            }
+        }
+
+        // --- ACTIONS ---
+
+        /**
+         * Handles adding numbers via API call.
+         */
+        async function addNumbers() {
+            const numbersText = document.getElementById('numbers-input').value.trim();
+            const party = document.getElementById('party-select-add').value;
+            
+            if (!numbersText) {
+                showAlert('Please enter at least one phone number.', 'info');
+                return;
+            }
+
+            const numbers = numbersText.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+            
+            document.getElementById('add-numbers-btn').disabled = true;
+            log(`Attempting to add ${numbers.length} numbers to ${party}...`, 'text-blue-300');
+
+            try {
+                const response = await fetch(API_URLS.ADD_NUMBERS, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ numbers, party })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(`Successfully added ${result.added} numbers to ${party}. ${result.invalid} invalid numbers ignored.`, 'success');
+                    log(`Success: ${result.added} numbers added. Total contacts: ${result.total}`, 'text-green-300');
+                    document.getElementById('numbers-input').value = ''; // Clear input
+                    updateDashboard();
+                } else {
+                    showAlert(`Failed to add numbers: ${result.error}`, 'error');
+                    log(`Error: ${result.error}`, 'text-red-500');
+                }
+            } catch (error) {
+                showAlert('Network error during contact upload.', 'error');
+                log(`Network Error: ${error.message}`, 'text-red-500');
+            } finally {
+                document.getElementById('add-numbers-btn').disabled = false;
+            }
+        }
+
+        /**
+         * Clears all contacts in the database.
+         */
+        async function clearAllNumbers() {
+             if (!confirm('Are you sure you want to clear ALL contact lists? This action cannot be undone.')) {
+                return;
+            }
+
+            log('Clearing all contacts...', 'text-yellow-300');
+
+            try {
+                const response = await fetch(API_URLS.CLEAR_NUMBERS, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ party: 'ALL' }) 
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    log('All contact lists cleared successfully.', 'text-green-300');
+                    updateDashboard();
+                } else {
+                    showAlert(`Failed to clear numbers: ${result.error}`, 'error');
+                    log(`Error clearing numbers: ${result.error}`, 'text-red-500');
+                }
+            } catch (error) {
+                showAlert('Network error during number clearing.', 'error');
+                log(`Network Error: ${error.message}`, 'text-red-500');
+            }
+        }
+
+
+        /**
+         * Handles setting the campaign message.
+         */
+        async function setMessage() {
+            const message = document.getElementById('campaign-message-input').value.trim();
+            if (!message) {
+                showAlert('Message cannot be empty.', 'info');
+                return;
+            }
+
+            document.getElementById('set-message-btn').disabled = true;
+            log('Saving campaign message...', 'text-blue-300');
+
+            try {
+                const response = await fetch(API_URLS.SET_MESSAGE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Campaign message saved successfully.', 'success');
+                    log('Campaign message set.', 'text-green-300');
+                    updateDashboard();
+                } else {
+                    showAlert(`Failed to set message: ${result.error}`, 'error');
+                    log(`Error setting message: ${result.error}`, 'text-red-500');
+                }
+            } catch (error) {
+                showAlert('Network error during message saving.', 'error');
+                log(`Network Error: ${error.message}`, 'text-red-500');
+            } finally {
+                document.getElementById('set-message-btn').disabled = false;
+            }
+        }
+
+        /**
+         * Handles file upload for media (image or audio).
+         * @param {string} type 'image' or 'audio'
+         */
+        async function handleFileUpload(type) {
+            const input = document.getElementById(`${type}-upload`);
+            if (input.files.length === 0) return;
+
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append(type, file);
+            
+            const statusEl = document.getElementById(`${type}-status`).querySelector('span');
+            const url = type === 'image' ? API_URLS.UPLOAD_IMAGE : API_URLS.UPLOAD_AUDIO;
+
+            statusEl.textContent = `Status: Uploading ${file.name}...`;
+            log(`Uploading ${type} file: ${file.name}...`, 'text-blue-300');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded: ${result.filename}`, 'success');
+                    log(`Success: ${type} set to ${result.filename}`, 'text-green-300');
+                    updateDashboard();
+                } else {
+                    showAlert(`Failed to upload ${type}: ${result.error}`, 'error');
+                    log(`Error uploading ${type}: ${result.error}`, 'text-red-500');
+                }
+            } catch (error) {
+                showAlert(`Network error during ${type} upload.`, 'error');
+                log(`Network Error: ${error.message}`, 'text-red-500');
+            }
+        }
+
+        // Attach event listeners for file uploads
+        document.getElementById('image-upload').addEventListener('change', () => handleFileUpload('image'));
+        document.getElementById('audio-upload').addEventListener('change', () => handleFileUpload('audio'));
+
+        /**
+         * Clears the set campaign media.
+         * @param {string} type 'image' or 'audio'
+         */
+        async function clearMedia(type) {
+            log(`Clearing ${type} media...`, 'text-yellow-300');
+            try {
+                const response = await fetch(API_URLS.CLEAR_MEDIA, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(`${type.charAt(0).toUpperCase() + type.slice(1)} media cleared.`, 'success');
+                    log(`${type} cleared.`, 'text-green-300');
+                    updateDashboard();
+                } else {
+                    showAlert(`Failed to clear ${type}: ${result.error}`, 'error');
+                    log(`Error clearing ${type}: ${result.error}`, 'text-red-500');
+                }
+            } catch (error) {
+                showAlert('Network error during media clearing.', 'error');
+                log(`Network Error: ${error.message}`, 'text-red-500');
+            }
+        }
+
+        /**
+         * Launches the campaign.
+         */
+        async function sendCampaign() {
+            const campaignType = document.getElementById('campaign-type').value;
+            const party = document.getElementById('campaign-party').value;
+            
+            if (!isClientReady) {
+                showAlert('Bot is not connected. Cannot send campaign.', 'error');
+                return;
+            }
+            if (!hasMessage) {
+                 showAlert('Please set a campaign message first.', 'error');
+                 return;
+            }
+            if ((campaignType === 'image' && !hasImage) || (campaignType === 'audio' && !hasAudio)) {
+                showAlert(`Please upload the required ${campaignType} media file.`, 'error');
+                return;
+            }
+
+            document.getElementById('send-campaign-btn').disabled = true;
+            log(`Launching ${campaignType.toUpperCase()} campaign to ${party} party...`, 'text-whatsapp');
+            showAlert(`Sending campaign to ${party}... Check log for progress.`, 'info');
+
+            try {
+                const response = await fetch(API_URLS.SEND_CAMPAIGN, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ campaignType, party })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    const data = result.data;
+                    const logColor = data.failed > 0 ? 'text-yellow-400' : 'text-green-400';
+                    log(`Campaign to ${data.party} finished: ${data.success}/${data.total} successful.`, logColor);
+                    
+                    data.results.forEach(res => {
+                        const statusColor = res.status === 'success' ? 'text-green-500' : 'text-red-500';
+                        const statusMsg = res.status === 'success' ? 'SENT' : `FAILED (${res.error.substring(0, 50)}...)`;
+                        log(`[RESULT] ${res.number}: ${statusMsg}`, statusColor);
+                    });
+
+                    showAlert(`Campaign completed! ${data.success} successful, ${data.failed} failed.`, 'success');
+                } else {
+                    showAlert(`Campaign failed to start: ${result.error}`, 'error');
+                    log(`FATAL Error: ${result.error}`, 'text-red-500');
+                }
+            } catch (error) {
+                showAlert('Network error during campaign launch.', 'error');
+                log(`Network Error: ${error.message}`, 'text-red-500');
+            } finally {
+                document.getElementById('send-campaign-btn').disabled = false;
+                updateDashboard(); // Final refresh
+            }
+        }
+
+        // --- INITIALIZATION ---
+
+        // Fetch status immediately and then every 10 seconds
+        window.onload = () => {
+            log('Frontend initialized. Checking backend status...');
+            updateDashboard();
+            setInterval(updateDashboard, 10000); // Poll status every 10 seconds
+        };
+        
+        // Custom replacement for browser's confirm()
+        function confirm(message) {
+            return window.confirm(message);
+        }
+
+    </script>
+</body>
+</html>

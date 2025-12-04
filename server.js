@@ -6,16 +6,21 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync('uploads')) {
-    fs.mkdirSync('uploads');
-}
-if (!fs.existsSync('uploads/images')) {
-    fs.mkdirSync('uploads/images');
-}
-if (!fs.existsSync('uploads/audio')) {
-    fs.mkdirSync('uploads/audio');
-}
+// Create required directories
+const directories = [
+    'uploads',
+    'uploads/images',
+    'uploads/audio',
+    'uploads/video',
+    'contacts'
+];
+
+directories.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log(`📁 Created directory: ${dir}`);
+    }
+});
 
 // Configure multer for file uploads with better error handling
 const storage = multer.diskStorage({
@@ -24,6 +29,8 @@ const storage = multer.diskStorage({
             cb(null, 'uploads/audio/');
         } else if (file.mimetype.startsWith('image/')) {
             cb(null, 'uploads/images/');
+        } else if (file.mimetype.startsWith('video/')) {
+            cb(null, 'uploads/video/');
         } else {
             cb(new Error('Invalid file type'), false);
         }
@@ -38,14 +45,16 @@ const storage = multer.diskStorage({
 const upload = multer({ 
     storage: storage,
     fileFilter: function (req, file, cb) {
-        if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('audio/')) {
+        if (file.mimetype.startsWith('image/') || 
+            file.mimetype.startsWith('audio/') || 
+            file.mimetype.startsWith('video/')) {
             cb(null, true);
         } else {
-            cb(new Error('Only image and audio files are allowed!'), false);
+            cb(new Error('Only image, audio and video files are allowed!'), false);
         }
     },
     limits: {
-        fileSize: 50 * 1024 * 1024 // 50MB limit
+        fileSize: 100 * 1024 * 1024 // 100MB limit for videos
     }
 });
 
@@ -71,19 +80,81 @@ class WhatsAppCampaignBot {
 
         this.phoneNumbers = {
             'ALL': [],
-            'CONGRESS': [],
+            'INC': [],
             'BJP': [],
             'BRS': []
         };
         this.campaignMedia = {
             image: null,
-            audio: null
+            audio: null,
+            video: null
         };
         this.customMessage = "";
         this.isClientReady = false;
         this.botName = "BADSI SARPANCH ELECTIONS";
+        this.contactFiles = {
+            'ALL': 'contacts/ALL.txt',
+            'INC': 'contacts/INC.txt',
+            'BJP': 'contacts/BJP.txt',
+            'BRS': 'contacts/BRS.txt'
+        };
+        
         this.setupEventHandlers();
+        this.loadContactsFromFiles();
         this.setupWebServer();
+    }
+
+    // Load contacts from text files in contacts folder
+    loadContactsFromFiles() {
+        console.log('📂 Loading contacts from files...');
+        
+        Object.keys(this.contactFiles).forEach(party => {
+            const filePath = this.contactFiles[party];
+            
+            // Create file if it doesn't exist
+            if (!fs.existsSync(filePath)) {
+                fs.writeFileSync(filePath, '', 'utf8');
+                console.log(`📄 Created empty contact file: ${filePath}`);
+                return;
+            }
+
+            try {
+                const fileContent = fs.readFileSync(filePath, 'utf8');
+                const numbers = fileContent
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0 && !line.startsWith('#')); // Skip empty lines and comments
+
+                if (numbers.length > 0) {
+                    const validNumbers = this.addPhoneNumbers(numbers, party, false);
+                    console.log(`✅ Loaded ${validNumbers.length} contacts for ${party} from ${filePath}`);
+                } else {
+                    console.log(`ℹ️  No contacts found in ${filePath}`);
+                }
+            } catch (error) {
+                console.error(`❌ Error reading ${filePath}:`, error.message);
+            }
+        });
+
+        console.log(`📊 Total contacts loaded: ${this.phoneNumbers['ALL'].length}`);
+        console.log(`   INC: ${this.phoneNumbers['INC'].length}`);
+        console.log(`   BJP: ${this.phoneNumbers['BJP'].length}`);
+        console.log(`   BRS: ${this.phoneNumbers['BRS'].length}`);
+    }
+
+    // Save contacts to text files
+    saveContactsToFile(party) {
+        try {
+            const filePath = this.contactFiles[party];
+            const numbers = this.phoneNumbers[party].map(num => num.replace('@c.us', ''));
+            const content = `# ${party} Party Contacts\n# Total: ${numbers.length}\n# Last updated: ${new Date().toLocaleString()}\n\n${numbers.join('\n')}`;
+            fs.writeFileSync(filePath, content, 'utf8');
+            console.log(`💾 Saved ${numbers.length} contacts to ${filePath}`);
+            return true;
+        } catch (error) {
+            console.error(`❌ Error saving contacts to file:`, error.message);
+            return false;
+        }
     }
 
     setupEventHandlers() {
@@ -106,7 +177,7 @@ class WhatsAppCampaignBot {
             try {
                 this.logMessage(message);
             } catch (error) {
-                console.log('⚠️ Error logging message:', error.message);
+                console.log('⚠️  Error logging message:', error.message);
             }
         });
 
@@ -170,11 +241,11 @@ class WhatsAppCampaignBot {
                 }, 5000);
                 
             } catch (profileError) {
-                console.log('ℹ️ Could not set profile picture (normal for some accounts)');
+                console.log('ℹ️  Could not set profile picture (normal for some accounts)');
             }
             
         } catch (error) {
-            console.log('⚠️ Profile setup limited:', error.message);
+            console.log('⚠️  Profile setup limited:', error.message);
         }
     }
 
@@ -193,7 +264,7 @@ class WhatsAppCampaignBot {
     }
 
     // Validate and format phone numbers with party assignment
-    addPhoneNumbers(numbers, party = 'ALL') {
+    addPhoneNumbers(numbers, party = 'ALL', saveToFile = true) {
         const cleanedNumbers = numbers.map(num => {
             let cleanNum = num.replace(/\D/g, '');
             cleanNum = cleanNum.replace(/^0+/, '');
@@ -207,12 +278,20 @@ class WhatsAppCampaignBot {
             return num.match(/^91\d{10}@c\.us$/);
         });
         
-        // Add to specified party and ALL
+        // Add to specified party
         this.phoneNumbers[party] = [...new Set([...this.phoneNumbers[party], ...cleanedNumbers])];
         
         // Also add to ALL if not already there
         if (party !== 'ALL') {
             this.phoneNumbers['ALL'] = [...new Set([...this.phoneNumbers['ALL'], ...cleanedNumbers])];
+        }
+        
+        // Save to file
+        if (saveToFile) {
+            this.saveContactsToFile(party);
+            if (party !== 'ALL') {
+                this.saveContactsToFile('ALL');
+            }
         }
         
         return cleanedNumbers;
@@ -246,12 +325,12 @@ class WhatsAppCampaignBot {
             try {
                 fs.unlinkSync(this.campaignMedia[type]);
             } catch (error) {
-                console.log(`⚠️ Could not delete old ${type} file:`, error.message);
+                console.log(`⚠️  Could not delete old ${type} file:`, error.message);
             }
         }
         
         this.campaignMedia[type] = filePath;
-        console.log(`✅ ${type} file set: ${path.basename(filePath)}`);
+        console.log(`✅ ${type.toUpperCase()} file set: ${path.basename(filePath)}`);
         return filePath;
     }
 
@@ -301,13 +380,22 @@ class WhatsAppCampaignBot {
                 console.log('❌ Could not load audio:', error.message);
                 throw new Error('Failed to load audio file: ' + error.message);
             }
+        } else if (campaignType === 'video' && this.campaignMedia.video && fs.existsSync(this.campaignMedia.video)) {
+            try {
+                media = MessageMedia.fromFilePath(this.campaignMedia.video);
+                mediaType = 'video';
+                console.log('🎥 Campaign video loaded successfully');
+            } catch (error) {
+                console.log('❌ Could not load video:', error.message);
+                throw new Error('Failed to load video file: ' + error.message);
+            }
         }
 
         const results = [];
         let successCount = 0;
         let failCount = 0;
 
-        console.log(`🚀 Starting ${mediaType} campaign for ${selectedParty} party to ${targetNumbers.length} contacts...`);
+        console.log(`🚀 Starting ${mediaType.toUpperCase()} campaign for ${selectedParty} party to ${targetNumbers.length} contacts...`);
 
         for (const number of targetNumbers) {
             const maskedNumber = this.getMaskedNumber(number);
@@ -320,6 +408,9 @@ class WhatsAppCampaignBot {
                     } else if (mediaType === 'image') {
                         // Send image with caption
                         await this.client.sendMessage(number, media, { caption: message });
+                    } else if (mediaType === 'video') {
+                        // Send video with caption
+                        await this.client.sendMessage(number, media, { caption: message });
                     }
                 } else {
                     // Send text only
@@ -330,8 +421,9 @@ class WhatsAppCampaignBot {
                 successCount++;
                 console.log(`✅ ${mediaType.toUpperCase()} sent to ${selectedParty}: ${maskedNumber}`);
                 
-                // Add delay to avoid rate limiting
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                // Add delay to avoid rate limiting (longer for videos)
+                const delay = mediaType === 'video' ? 5000 : 3000;
+                await new Promise(resolve => setTimeout(resolve, delay));
                 
             } catch (error) {
                 results.push({ number: maskedNumber, status: 'failed', error: error.message });
@@ -356,8 +448,8 @@ class WhatsAppCampaignBot {
         const app = express();
         const PORT = process.env.PORT || 3000;
 
-        app.use(bodyParser.json({ limit: '50mb' }));
-        app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+        app.use(bodyParser.json({ limit: '100mb' }));
+        app.use(bodyParser.urlencoded({ extended: true, limit: '100mb' }));
         app.use(express.static('public'));
 
         // API Routes
@@ -368,7 +460,7 @@ class WhatsAppCampaignBot {
                     return res.json({ success: false, error: 'Invalid numbers format' });
                 }
                 
-                const validParties = ['ALL', 'CONGRESS', 'BJP', 'BRS'];
+                const validParties = ['ALL', 'INC', 'BJP', 'BRS'];
                 if (!validParties.includes(party)) {
                     return res.json({ success: false, error: 'Invalid party selection' });
                 }
@@ -422,6 +514,23 @@ class WhatsAppCampaignBot {
             }
         });
 
+        app.post('/upload-video', upload.single('video'), (req, res) => {
+            try {
+                if (!req.file) {
+                    return res.json({ success: false, error: 'No video file uploaded' });
+                }
+                const videoPath = this.setCampaignMedia('video', req.file.path);
+                res.json({ 
+                    success: true, 
+                    path: videoPath, 
+                    filename: path.basename(videoPath),
+                    type: 'video' 
+                });
+            } catch (error) {
+                res.json({ success: false, error: error.message });
+            }
+        });
+
         app.post('/set-message', (req, res) => {
             try {
                 const { message } = req.body;
@@ -446,22 +555,34 @@ class WhatsAppCampaignBot {
         });
 
         app.post('/clear-numbers', (req, res) => {
-            const { party } = req.body;
-            if (party && this.phoneNumbers[party]) {
-                this.phoneNumbers[party] = [];
-                // Also remove from ALL if not clearing ALL
-                if (party !== 'ALL') {
-                    this.phoneNumbers['ALL'] = this.phoneNumbers['ALL'].filter(num => 
-                        !this.phoneNumbers[party].includes(num)
-                    );
+            try {
+                const { party } = req.body;
+                if (party && this.phoneNumbers[party]) {
+                    this.phoneNumbers[party] = [];
+                    this.saveContactsToFile(party);
+                    
+                    // Also update ALL if clearing a specific party
+                    if (party !== 'ALL') {
+                        // Rebuild ALL from other parties
+                        this.phoneNumbers['ALL'] = [
+                            ...this.phoneNumbers['INC'],
+                            ...this.phoneNumbers['BJP'],
+                            ...this.phoneNumbers['BRS']
+                        ];
+                        this.phoneNumbers['ALL'] = [...new Set(this.phoneNumbers['ALL'])];
+                        this.saveContactsToFile('ALL');
+                    }
+                    res.json({ success: true, message: `${party} party numbers cleared` });
+                } else {
+                    // Clear all parties
+                    Object.keys(this.phoneNumbers).forEach(p => {
+                        this.phoneNumbers[p] = [];
+                        this.saveContactsToFile(p);
+                    });
+                    res.json({ success: true, message: 'All numbers cleared' });
                 }
-                res.json({ success: true, message: `${party} party numbers cleared` });
-            } else {
-                // Clear all parties
-                Object.keys(this.phoneNumbers).forEach(p => {
-                    this.phoneNumbers[p] = [];
-                });
-                res.json({ success: true, message: 'All numbers cleared' });
+            } catch (error) {
+                res.json({ success: false, error: error.message });
             }
         });
 
@@ -505,17 +626,39 @@ class WhatsAppCampaignBot {
                 totalNumbers: this.phoneNumbers['ALL'].length,
                 hasImage: !!this.campaignMedia.image,
                 hasAudio: !!this.campaignMedia.audio,
+                hasVideo: !!this.campaignMedia.video,
                 hasMessage: !!this.customMessage && this.customMessage.length > 0,
                 botName: this.botName,
                 partyStats: this.getPartyStats()
             });
         });
 
+        app.post('/reload-contacts', (req, res) => {
+            try {
+                // Clear existing numbers
+                Object.keys(this.phoneNumbers).forEach(party => {
+                    this.phoneNumbers[party] = [];
+                });
+                
+                // Reload from files
+                this.loadContactsFromFiles();
+                
+                res.json({ 
+                    success: true, 
+                    message: 'Contacts reloaded from files',
+                    partyStats: this.getPartyStats(),
+                    total: this.phoneNumbers['ALL'].length
+                });
+            } catch (error) {
+                res.json({ success: false, error: error.message });
+            }
+        });
+
         // Error handling middleware
         app.use((error, req, res, next) => {
             if (error instanceof multer.MulterError) {
                 if (error.code === 'LIMIT_FILE_SIZE') {
-                    return res.json({ success: false, error: 'File too large. Maximum size is 50MB.' });
+                    return res.json({ success: false, error: 'File too large. Maximum size is 100MB.' });
                 }
             }
             res.json({ success: false, error: error.message });
@@ -532,8 +675,9 @@ class WhatsAppCampaignBot {
         console.log('🚀 Initializing WhatsApp Campaign Bot...');
         console.log(`📛 Bot Identity: ${this.botName}`);
         console.log('🔒 Privacy Mode: Phone number hidden with profile setup');
-        console.log('🎪 Party System: ALL, CONGRESS, BJP, BRS');
-        console.log('🎵 Features: Custom messages with image/audio support');
+        console.log('🎪 Party System: ALL, INC, BJP, BRS');
+        console.log('🎵 Features: Custom messages with image/audio/video support');
+        console.log('📂 Contact Files: Loading from contacts/ folder');
         console.log('🌐 Admin Panel: http://localhost:3000');
     }
 }

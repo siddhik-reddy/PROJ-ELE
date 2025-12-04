@@ -1,27 +1,37 @@
-WhatsApp Campaign Bot - BADSI SARPANCH ELECTIONS
+ WhatsApp Campaign Bot - BADSI SARPANCH ELECTIONS
 A professional WhatsApp campaign management bot designed for political campaigns with multi-party contact management, media support, and privacy features.
 📋 Features
-🎪 Party Management
+ Party Management
 •	Multi-party system: ALL, INC, BJP, BRS
 •	Separate contact lists for each party
 •	Automatic file storage in contacts/ folder
 •	Real-time statistics for each party
-📱 WhatsApp Features
+WhatsApp Features
 •	QR-based authentication with persistent sessions
 •	Profile privacy - hides phone number with custom display name
 •	Silent mode - logs incoming messages without responses
-•	Auto-reconnect on disconnection
+•	Auto-reconnect on disconnection 
+Campaign Types
+•	Text messages with custom content
+•	Image campaigns with captions
+•	Audio campaigns sent as voice notes
+•	Video campaigns with captions (up to 100MB)
+ Privacy & Security
+•	Masked phone numbers in logs (XXXXXX1234 format)
+•	No response to incoming messages
+•	Profile name customization (BADSI SARPANCH ELECTIONS)
+•	Optional profile picture to hide identity
 
-🚀 Quick Start
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
-- Active WhatsApp account
-
-### Installation
-
-1. **Clone or download the bot**
-```bash
-git clone <repository-url>
-cd whatsapp-campaign-bot
+whatsapp-campaign-bot/
+├── contacts/              # Contact lists by party
+│   ├── ALL.txt
+│   ├── INC.txt
+│   ├── BJP.txt
+│   └── BRS.txt
+├── uploads/              # Media uploads
+│   ├── images/
+│   ├── audio/
+│   └── video/
+├── public/               # Web panel assets (optional)
+└── index.js              # Main bot file

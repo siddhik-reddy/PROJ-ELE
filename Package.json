@@ -4,8 +4,8 @@
   "description": "WhatsApp Campaign Bot for BADSI SARPANCH ELECTIONS",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js",
-    "dev": "node bot.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "dependencies": {
     "body-parser": "^1.20.3",
@@ -21,6 +21,7 @@
     "elections",
     "sarpanch"
   ],
-  "author": "Your Name",
+  "author": "ERAMMA SIDDHIK REDDY",
   "license": "MIT"
 }
+

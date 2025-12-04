@@ -3,658 +3,1451 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BADSI SARPANCH Campaign Bot</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Configure Tailwind -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        whatsapp: '#25D366',
-                        whatsappDark: '#128C7E',
-                        primary: '#3b82f6',
-                        secondary: '#1f2937',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
+    <title>BADSI Sarpanch Elections - WhatsApp Campaign Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #25D366;
+            --secondary-color: #128C7E;
+            --dark-color: #075E54;
+            --light-color: #DCF8C6;
+            --danger-color: #FF4757;
+            --warning-color: #FFA502;
+            --info-color: #2ED573;
+            --gray-color: #808080;
+            --light-gray: #F5F5F5;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(to right, var(--dark-color), var(--secondary-color));
+            color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge.connected {
+            background: rgba(37, 211, 102, 0.3);
+        }
+
+        .status-badge.disconnected {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-color);
+        }
+
+        .card-title i {
+            color: var(--primary-color);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: scale(1.03);
+        }
+
+        .stat-card h3 {
+            font-size: 1rem;
+            color: var(--gray-color);
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-party {
+            font-size: 0.9rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .party-all { background-color: #e3f2fd; color: #1565c0; }
+        .party-inc { background-color: #ffebee; color: #c62828; }
+        .party-bjp { background-color: #fff8e1; color: #ff8f00; }
+        .party-brs { background-color: #e8f5e9; color: #2e7d32; }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.2);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--gray-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #666;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ff3742;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e59400;
+            transform: translateY(-2px);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* File Upload */
+        .file-upload {
+            border: 2px dashed var(--gray-color);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            text-align: center;
+            background: var(--light-gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary-color);
+            background: rgba(37, 211, 102, 0.05);
+        }
+
+        .file-upload i {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(37, 211, 102, 0.1);
+            border-radius: var(--border-radius);
+            display: none;
+        }
+
+        /* Media Preview */
+        .media-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .preview-item {
+            flex: 1;
+            min-width: 200px;
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .preview-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+
+        /* Campaign Controls */
+        .campaign-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .campaign-type {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .campaign-type:hover {
+            border-color: var(--primary-color);
+        }
+
+        .campaign-type.active {
+            border-color: var(--primary-color);
+            background: rgba(37, 211, 102, 0.1);
+        }
+
+        .campaign-type i {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        /* Party Selector */
+        .party-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .party-option {
+            padding: 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .party-option:hover {
+            transform: translateY(-3px);
+        }
+
+        .party-option.active {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 8px rgba(37, 211, 102, 0.2);
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            display: none;
+        }
+
+        .alert-success {
+            background: rgba(46, 213, 115, 0.1);
+            border-left: 4px solid var(--info-color);
+            color: #155724;
+        }
+
+        .alert-error {
+            background: rgba(255, 71, 87, 0.1);
+            border-left: 4px solid var(--danger-color);
+            color: #721c24;
+        }
+
+        .alert-warning {
+            background: rgba(255, 165, 2, 0.1);
+            border-left: 4px solid var(--warning-color);
+            color: #856404;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Results Table */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-table th {
+            background: var(--light-gray);
+            padding: 15px;
+            text-align: left;
+            color: var(--dark-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .results-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .results-table tr:hover {
+            background: rgba(37, 211, 102, 0.05);
+        }
+
+        .status-success {
+            color: var(--info-color);
+            font-weight: 600;
+        }
+
+        .status-failed {
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--gray-color);
+            font-size: 0.9rem;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .party-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .campaign-type-selector {
+                flex-direction: column;
             }
         }
-    </script>
-    <style>
-        /* Custom scrollbar for better aesthetics */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .party-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #9ca3af;
-            border-radius: 20px;
+
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background-color: #f3f4f6;
-            border-radius: 20px;
+
+        .pulse {
+            animation: pulse 2s infinite;
         }
-        .card {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
         }
-        .card:hover {
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen">
-
-    <!-- Header -->
-    <header class="bg-whatsappDark text-white p-4 shadow-lg sticky top-0 z-10">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold tracking-tight">
-                <i class="fab fa-whatsapp mr-2"></i> Campaign Dashboard
-            </h1>
-            <div id="bot-name" class="text-sm font-light opacity-80">
-                BADSI SARPANCH ELECTIONS
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div>
+                <h1><i class="fas fa-robot"></i> BADSI SARPANCH ELECTIONS</h1>
+                <p>WhatsApp Campaign Management System</p>
             </div>
-        </div>
-    </header>
+            <div id="connectionStatus" class="status-badge disconnected">
+                <i class="fas fa-plug"></i>
+                <span>Disconnected</span>
+            </div>
+        </header>
 
-    <main class="container mx-auto p-4 lg:p-8">
-        <div id="message-box" class="fixed top-20 right-4 z-50 w-full max-w-xs transition-all duration-300">
-            <!-- Dynamic alerts go here -->
+        <!-- Stats Overview -->
+        <div class="stats-grid" id="statsOverview">
+            <!-- Stats will be loaded dynamically -->
         </div>
 
         <!-- Dashboard Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            <!-- COLUMN 1: STATUS & CONTACT MANAGEMENT (LG: 1/3) -->
-            <div class="lg:col-span-1 space-y-6">
+        <div class="dashboard">
+            <!-- Contacts Management -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-address-book"></i> Contacts Management</h2>
                 
-                <!-- Connection Status Card -->
-                <div class="card bg-white p-6 rounded-xl">
-                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
-                        <svg class="w-6 h-6 mr-2 text-whatsapp" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        Bot Connection Status
-                    </h2>
-                    <div id="status-display" class="space-y-3">
-                        <p class="flex justify-between items-center">
-                            <span class="font-medium text-gray-700">Status:</span>
-                            <span id="client-ready" class="font-bold text-sm px-3 py-1 rounded-full">Connecting...</span>
-                        </p>
-                        <p class="flex justify-between items-center">
-                            <span class="font-medium text-gray-700">Total Contacts:</span>
-                            <span id="total-numbers" class="font-bold text-lg text-primary">0</span>
-                        </p>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Add Phone Numbers</label>
+                    <textarea id="phoneNumbers" class="form-control" placeholder="Enter phone numbers (one per line or comma separated)"></textarea>
                 </div>
-
-                <!-- Contact Management Card -->
-                <div class="card bg-white p-6 rounded-xl">
-                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
-                        <svg class="w-6 h-6 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-3m0 0v-5m0 5h-3m-12-3l4-4m2 2l4-4m2-2l4-4m-2-2L4 20"></path></svg>
-                        Add Contacts (Indian Format: 91XXXXXXXXXX)
-                    </h2>
-                    <textarea id="numbers-input" rows="5" placeholder="Enter one phone number per line, e.g., 919876543210" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"></textarea>
-                    
-                    <div class="flex flex-col sm:flex-row gap-3 mt-3">
-                        <select id="party-select-add" class="flex-grow p-3 border border-gray-300 bg-white rounded-lg focus:ring-primary focus:border-primary">
-                            <option value="ALL">ALL Contacts</option>
-                            <option value="CONGRESS">CONGRESS</option>
-                            <option value="BJP">BJP</option>
-                            <option value="BRS">BRS</option>
-                        </select>
-                        <button onclick="addNumbers()" id="add-numbers-btn" class="bg-primary hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-150 transform hover:scale-[1.02]">
-                            Add to List
-                        </button>
-                    </div>
-                    <button onclick="clearAllNumbers()" class="text-sm text-red-500 hover:text-red-700 mt-2 block w-full text-center">Clear ALL Contact Lists</button>
+                
+                <div class="form-group">
+                    <label class="form-label">Select Party</label>
+                    <select id="partySelect" class="form-control">
+                        <option value="ALL">All Parties</option>
+                        <option value="INC">INC Party</option>
+                        <option value="BJP">BJP Party</option>
+                        <option value="BRS">BRS Party</option>
+                    </select>
                 </div>
-
-                <!-- Party Stats Card -->
-                <div class="card bg-white p-6 rounded-xl">
-                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
-                        <svg class="w-6 h-6 mr-2 text-whatsappDark" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3-.895-3-2 1.343-2 3-2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.839A10.025 10.025 0 0112 4c4.418 0 8 3.582 8 8z"></path></svg>
-                        Party Distribution
-                    </h2>
-                    <ul id="party-stats-list" class="space-y-2 text-gray-600">
-                        <!-- Stats injected here -->
-                    </ul>
-                </div>
-            </div>
-
-            <!-- COLUMN 2: MESSAGE AND MEDIA SETUP (LG: 1/3) -->
-            <div class="lg:col-span-1 space-y-6">
-                <!-- Message Setup Card -->
-                <div class="card bg-white p-6 rounded-xl">
-                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
-                        <svg class="w-6 h-6 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10M7 16h7M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2h-4"></path></svg>
-                        Campaign Message
-                    </h2>
-                    <textarea id="campaign-message-input" rows="5" placeholder="Enter your main campaign message here..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"></textarea>
-                    <button onclick="setMessage()" id="set-message-btn" class="w-full bg-whatsapp hover:bg-green-600 text-white font-semibold py-2 mt-3 rounded-lg transition duration-150">
-                        Save Message
+                
+                <div class="btn-group">
+                    <button id="addNumbersBtn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Numbers
                     </button>
-                    <p id="current-message-status" class="text-sm mt-2 text-gray-500"></p>
+                    <button id="clearNumbersBtn" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Clear Numbers
+                    </button>
+                    <button id="reloadContactsBtn" class="btn btn-secondary">
+                        <i class="fas fa-sync"></i> Reload Contacts
+                    </button>
                 </div>
-
-                <!-- Media Upload Card -->
-                <div class="card bg-white p-6 rounded-xl">
-                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
-                        <svg class="w-6 h-6 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        Campaign Media (Image or Audio)
-                    </h2>
-
-                    <!-- Image Upload -->
-                    <div class="mb-4 p-3 border-2 border-dashed border-gray-200 rounded-lg">
-                        <label for="image-upload" class="block text-sm font-medium text-gray-700 mb-1">Upload Image (JPG/PNG)</label>
-                        <input type="file" id="image-upload" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
-                        <div id="image-status" class="text-sm mt-2 flex justify-between items-center text-gray-500">
-                            <span>Status: No image set</span>
-                            <button onclick="clearMedia('image')" class="text-red-500 hover:text-red-700 text-xs hidden" id="clear-image-btn">Clear</button>
-                        </div>
-                    </div>
-
-                    <!-- Audio Upload -->
-                    <div class="p-3 border-2 border-dashed border-gray-200 rounded-lg">
-                        <label for="audio-upload" class="block text-sm font-medium text-gray-700 mb-1">Upload Audio (MP3/WAV)</label>
-                        <input type="file" id="audio-upload" accept="audio/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-500/10 file:text-purple-600 hover:file:bg-purple-500/20 cursor-pointer">
-                        <div id="audio-status" class="text-sm mt-2 flex justify-between items-center text-gray-500">
-                            <span>Status: No audio set</span>
-                            <button onclick="clearMedia('audio')" class="text-red-500 hover:text-red-700 text-xs hidden" id="clear-audio-btn">Clear</button>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Campaign Launch Card -->
-                <div class="card bg-white p-6 rounded-xl border-t-4 border-whatsapp">
-                    <h2 class="text-xl font-semibold text-secondary mb-4 flex items-center">
-                        <svg class="w-6 h-6 mr-2 text-whatsapp" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                        Launch Campaign
-                    </h2>
-                    
-                    <div class="space-y-3">
-                        <label for="campaign-party" class="block text-sm font-medium text-gray-700">Target Party</label>
-                        <select id="campaign-party" class="w-full p-3 border border-gray-300 bg-white rounded-lg focus:ring-whatsapp focus:border-whatsapp">
-                            <option value="ALL">ALL Contacts</option>
-                            <option value="CONGRESS">CONGRESS</option>
-                            <option value="BJP">BJP</option>
-                            <option value="BRS">BRS</option>
-                        </select>
-                        
-                        <label for="campaign-type" class="block text-sm font-medium text-gray-700 pt-2">Campaign Type</label>
-                        <select id="campaign-type" class="w-full p-3 border border-gray-300 bg-white rounded-lg focus:ring-whatsapp focus:border-whatsapp">
-                            <option value="text">Text Only</option>
-                            <option value="image" disabled>Image + Caption (Upload required)</option>
-                            <option value="audio" disabled>Audio/Voice Note (Upload required)</option>
-                        </select>
-                        
-                        <button onclick="sendCampaign()" id="send-campaign-btn" class="w-full bg-whatsapp hover:bg-whatsappDark text-white font-extrabold py-3 mt-4 rounded-lg transition duration-150 transform hover:scale-[1.02] disabled:opacity-50" disabled>
-                            SEND CAMPAIGN
-                        </button>
-                    </div>
-                    <p id="campaign-summary" class="text-xs text-center text-gray-500 mt-3"></p>
+                
+                <div id="numbersInfo" style="margin-top: 20px; display: none;">
+                    <p><strong>Added:</strong> <span id="addedCount">0</span> | <strong>Invalid:</strong> <span id="invalidCount">0</span></p>
                 </div>
             </div>
 
-            <!-- COLUMN 3: LOGS & RESULTS (LG: 1/3) -->
-            <div class="lg:col-span-1 space-y-6">
-                <!-- Log Console Card -->
-                <div class="card bg-gray-900 p-6 rounded-xl text-white">
-                    <h2 class="text-xl font-semibold text-whatsapp mb-4 flex items-center">
-                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L12 15m0 0l2.25 2m-2.25-2V7m6 14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2z"></path></svg>
-                        Campaign Log
-                    </h2>
-                    <div id="log-console" class="h-96 bg-black p-3 rounded-lg text-xs font-mono overflow-y-auto custom-scrollbar">
-                        <p class="text-gray-500">Awaiting status update from backend...</p>
+            <!-- Media Upload -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-photo-video"></i> Campaign Media</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">Upload Campaign Media</label>
+                    <div class="campaign-type-selector">
+                        <div class="campaign-type active" data-type="image">
+                            <i class="fas fa-image"></i>
+                            <div>Image</div>
+                        </div>
+                        <div class="campaign-type" data-type="audio">
+                            <i class="fas fa-music"></i>
+                            <div>Audio</div>
+                        </div>
+                        <div class="campaign-type" data-type="video">
+                            <i class="fas fa-video"></i>
+                            <div>Video</div>
+                        </div>
                     </div>
+                    
+                    <div id="fileUploadArea" class="file-upload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Drag & drop or click to upload <span id="fileTypeText">Image</span></p>
+                        <p class="small">Max size: 100MB</p>
+                        <input type="file" id="mediaUpload" style="display: none;" accept="image/*">
+                    </div>
+                    
+                    <div id="fileInfo" class="file-info">
+                        <strong>Selected File:</strong> <span id="fileName">None</span>
+                    </div>
+                </div>
+                
+                <div class="media-preview" id="mediaPreview">
+                    <!-- Media preview will be shown here -->
+                </div>
+                
+                <div class="btn-group" style="margin-top: 15px;">
+                    <button id="clearMediaBtn" class="btn btn-warning">
+                        <i class="fas fa-times"></i> Clear Media
+                    </button>
+                </div>
+            </div>
+
+            <!-- Message Editor -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-comment-alt"></i> Campaign Message</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">Custom Message</label>
+                    <textarea id="campaignMessage" class="form-control" placeholder="Enter your campaign message here..."></textarea>
+                </div>
+                
+                <div class="btn-group">
+                    <button id="saveMessageBtn" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Message
+                    </button>
+                    <button id="clearMessageBtn" class="btn btn-secondary">
+                        <i class="fas fa-broom"></i> Clear
+                    </button>
+                </div>
+                
+                <div id="messageStatus" style="margin-top: 15px; display: none;">
+                    <p><i class="fas fa-check-circle" style="color: #2ED573;"></i> Message saved successfully!</p>
                 </div>
             </div>
         </div>
-    </main>
 
-    <!-- Font Awesome for Icons -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js" crossorigin="anonymous"></script>
+        <!-- Campaign Launch Section -->
+        <div class="card" style="margin-bottom: 25px;">
+            <h2 class="card-title"><i class="fas fa-paper-plane"></i> Launch Campaign</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Select Campaign Type</label>
+                <div class="campaign-type-selector" id="campaignTypeSelector">
+                    <div class="campaign-type active" data-type="text">
+                        <i class="fas fa-font"></i>
+                        <div>Text Only</div>
+                    </div>
+                    <div class="campaign-type" data-type="image">
+                        <i class="fas fa-image"></i>
+                        <div>With Image</div>
+                    </div>
+                    <div class="campaign-type" data-type="audio">
+                        <i class="fas fa-volume-up"></i>
+                        <div>With Audio</div>
+                    </div>
+                    <div class="campaign-type" data-type="video">
+                        <i class="fas fa-video"></i>
+                        <div>With Video</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Select Target Party</label>
+                <div class="party-selector" id="campaignPartySelector">
+                    <div class="party-option active" data-party="ALL">
+                        All Parties
+                    </div>
+                    <div class="party-option" data-party="INC">
+                        INC Party
+                    </div>
+                    <div class="party-option" data-party="BJP">
+                        BJP Party
+                    </div>
+                    <div class="party-option" data-party="BRS">
+                        BRS Party
+                    </div>
+                </div>
+            </div>
+            
+            <div id="campaignSummary" style="background: rgba(37, 211, 102, 0.1); padding: 15px; border-radius: var(--border-radius); margin-bottom: 20px; display: none;">
+                <h4><i class="fas fa-info-circle"></i> Campaign Summary</h4>
+                <p><strong>Type:</strong> <span id="summaryType">Text</span></p>
+                <p><strong>Target:</strong> <span id="summaryTarget">All Parties</span> (<span id="summaryCount">0</span> contacts)</p>
+                <p><strong>Message:</strong> <span id="summaryMessage">None</span></p>
+                <p><strong>Media:</strong> <span id="summaryMedia">None</span></p>
+            </div>
+            
+            <button id="launchCampaignBtn" class="btn btn-primary btn-full pulse">
+                <i class="fas fa-rocket"></i> LAUNCH CAMPAIGN
+            </button>
+            
+            <div class="progress-container" id="campaignProgress">
+                <div class="progress-label">
+                    <span>Progress</span>
+                    <span id="progressText">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            
+            <div id="campaignResults" style="display: none;">
+                <h4><i class="fas fa-chart-bar"></i> Campaign Results</h4>
+                <table class="results-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <!-- Results will be added here -->
+                    </tbody>
+                </table>
+                <div style="margin-top: 15px; text-align: center;">
+                    <p><strong>Total:</strong> <span id="totalResults">0</span> | 
+                       <strong>Success:</strong> <span id="successResults">0</span> | 
+                       <strong>Failed:</strong> <span id="failedResults">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div id="alertContainer">
+            <!-- Alerts will be shown here -->
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><i class="fas fa-shield-alt"></i> WhatsApp Campaign Bot v1.0 | Privacy Mode: Phone numbers are hidden</p>
+            <p>Designed for BADSI Sarpanch Elections | All Rights Reserved</p>
+        </div>
+    </div>
 
     <script>
-        const API_URLS = {
-            STATUS: '/status',
-            ADD_NUMBERS: '/add-numbers',
-            UPLOAD_IMAGE: '/upload-image',
-            UPLOAD_AUDIO: '/upload-audio',
-            SET_MESSAGE: '/set-message',
-            SEND_CAMPAIGN: '/send-campaign',
-            CLEAR_MEDIA: '/clear-media',
-            CLEAR_NUMBERS: '/clear-numbers'
-        };
+        // Global variables
+        let currentMediaType = 'image';
+        let currentCampaignType = 'text';
+        let currentTargetParty = 'ALL';
+        let isConnected = false;
 
-        let isClientReady = false;
-        let hasMessage = false;
-        let hasImage = false;
-        let hasAudio = false;
-
-        // --- UTILITY FUNCTIONS ---
-
-        /**
-         * Shows a temporary, styled notification message.
-         * @param {string} message The text content of the alert.
-         * @param {string} type 'success', 'error', or 'info'.
-         */
-        function showAlert(message, type = 'info') {
-            const box = document.getElementById('message-box');
+        // DOM Elements
+        const connectionStatus = document.getElementById('connectionStatus');
+        const statsOverview = document.getElementById('statsOverview');
+        const alertContainer = document.getElementById('alertContainer');
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check connection status
+            checkStatus();
             
-            let bgColor, borderColor;
-            switch (type) {
-                case 'success':
-                    bgColor = 'bg-green-100 border-green-400 text-green-700';
-                    borderColor = 'border-l-4';
-                    break;
-                case 'error':
-                    bgColor = 'bg-red-100 border-red-400 text-red-700';
-                    borderColor = 'border-l-4';
-                    break;
-                case 'info':
-                default:
-                    bgColor = 'bg-blue-100 border-blue-400 text-blue-700';
-                    borderColor = 'border-l-4';
-                    break;
-            }
-
-            const alertHtml = `
-                <div class="p-4 rounded-lg mb-4 ${bgColor} ${borderColor} shadow-lg" role="alert">
-                    <p class="font-bold">${type.charAt(0).toUpperCase() + type.slice(1)}</p>
-                    <p class="text-sm">${message}</p>
-                </div>
-            `;
+            // Load stats
+            loadStats();
             
-            const newAlert = document.createElement('div');
-            newAlert.innerHTML = alertHtml;
-            box.prepend(newAlert);
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Check status periodically
+            setInterval(checkStatus, 10000);
+            setInterval(loadStats, 15000);
+        });
 
-            // Automatically remove after 5 seconds
-            setTimeout(() => {
-                newAlert.classList.add('opacity-0', 'scale-95');
-                newAlert.addEventListener('transitionend', () => newAlert.remove());
-            }, 5000);
-        }
-
-        /**
-         * Adds a message to the campaign log console.
-         * @param {string} message The log message.
-         * @param {string} color Tailwind text color class (e.g., 'text-green-400').
-         */
-        function log(message, color = 'text-gray-400') {
-            const logConsole = document.getElementById('log-console');
-            const timestamp = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const logEntry = document.createElement('p');
-            logEntry.className = `${color} mb-1`;
-            logEntry.innerHTML = `[${timestamp}] ${message}`;
-            logConsole.appendChild(logEntry);
-            // Scroll to the bottom
-            logConsole.scrollTop = logConsole.scrollHeight;
-        }
-
-        // --- API & DATA FETCHING ---
-
-        /**
-         * Fetches and updates the overall dashboard status.
-         */
-        async function updateDashboard() {
-            log('Fetching bot status...');
+        // Check bot status
+        async function checkStatus() {
             try {
-                const response = await fetch(API_URLS.STATUS);
+                const response = await fetch('/status');
                 const data = await response.json();
-
-                if (!data.ready) {
-                    log('Client is not ready. Scan QR code (check server console).', 'text-yellow-400');
+                
+                isConnected = data.ready;
+                
+                // Update connection status
+                if (isConnected) {
+                    connectionStatus.innerHTML = '<i class="fas fa-wifi"></i> <span>Connected</span>';
+                    connectionStatus.className = 'status-badge connected';
                 } else {
-                    log('Client is connected and ready.', 'text-green-400');
+                    connectionStatus.innerHTML = '<i class="fas fa-plug"></i> <span>Disconnected</span>';
+                    connectionStatus.className = 'status-badge disconnected';
                 }
-
-                // Update global state
-                isClientReady = data.ready;
-                hasMessage = data.hasMessage;
-                hasImage = data.hasImage;
-                hasAudio = data.hasAudio;
-
-                // 1. Connection Status UI
-                const readyText = document.getElementById('client-ready');
-                readyText.textContent = isClientReady ? 'CONNECTED' : 'DISCONNECTED';
-                readyText.className = `font-bold text-sm px-3 py-1 rounded-full ${isClientReady ? 'bg-whatsapp/20 text-whatsapp' : 'bg-red-500/20 text-red-500'}`;
                 
-                // 2. Numbers Status UI
-                document.getElementById('total-numbers').textContent = data.totalNumbers;
+                // Update media preview
+                updateMediaPreview(data);
                 
-                // 3. Party Stats UI
-                const statsList = document.getElementById('party-stats-list');
-                statsList.innerHTML = '';
-                Object.keys(data.partyStats).forEach(party => {
-                    const count = data.partyStats[party];
-                    const listItem = document.createElement('li');
-                    listItem.className = 'flex justify-between items-center border-b border-gray-100 py-1';
-                    listItem.innerHTML = `
-                        <span class="font-medium">${party}</span>
-                        <span class="font-bold text-lg">${count}</span>
-                    `;
-                    statsList.appendChild(listItem);
-                });
-
-                // 4. Content Status UI
-                document.getElementById('current-message-status').textContent = hasMessage ? 'Message set.' : 'No message set.';
+                // Update campaign summary
+                updateCampaignSummary(data);
                 
-                // Image Status
-                const imageStatusEl = document.getElementById('image-status').querySelector('span');
-                imageStatusEl.textContent = hasImage ? 'Status: Image file uploaded.' : 'Status: No image set';
-                document.getElementById('clear-image-btn').classList.toggle('hidden', !hasImage);
-                
-                // Audio Status
-                const audioStatusEl = document.getElementById('audio-status').querySelector('span');
-                audioStatusEl.textContent = hasAudio ? 'Status: Audio file uploaded.' : 'Status: No audio set';
-                document.getElementById('clear-audio-btn').classList.toggle('hidden', !hasAudio);
-                
-                // 5. Campaign Launch Controls
-                updateCampaignOptions();
-
             } catch (error) {
-                log(`Failed to fetch status: ${error.message}`, 'text-red-500');
-                showAlert('Could not connect to backend server.', 'error');
+                console.error('Error checking status:', error);
+                connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span>Connection Error</span>';
+                connectionStatus.className = 'status-badge disconnected';
             }
         }
 
-        /**
-         * Updates the available campaign types and enables the send button.
-         */
-        function updateCampaignOptions() {
-            const typeSelect = document.getElementById('campaign-type');
-            const sendBtn = document.getElementById('send-campaign-btn');
-            
-            const totalNumbers = parseInt(document.getElementById('total-numbers').textContent);
-
-            // Reset options
-            typeSelect.querySelector('option[value="image"]').disabled = true;
-            typeSelect.querySelector('option[value="audio"]').disabled = true;
-
-            // Enable based on media presence
-            if (hasImage) {
-                typeSelect.querySelector('option[value="image"]').disabled = false;
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch('/party-stats');
+                const data = await response.json();
+                
+                const stats = data.partyStats;
+                const total = data.total;
+                
+                // Create stats cards
+                statsOverview.innerHTML = `
+                    <div class="stat-card">
+                        <h3>TOTAL CONTACTS</h3>
+                        <div class="stat-value">${total}</div>
+                        <span class="stat-party party-all">ALL PARTIES</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>INC PARTY</h3>
+                        <div class="stat-value">${stats.INC || 0}</div>
+                        <span class="stat-party party-inc">INC</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>BJP PARTY</h3>
+                        <div class="stat-value">${stats.BJP || 0}</div>
+                        <span class="stat-party party-bjp">BJP</span>
+                    </div>
+                    <div class="stat-card">
+                        <h3>BRS PARTY</h3>
+                        <div class="stat-value">${stats.BRS || 0}</div>
+                        <span class="stat-party party-brs">BRS</span>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
             }
-            if (hasAudio) {
-                typeSelect.querySelector('option[value="audio"]').disabled = false;
-            }
+        }
 
-            // Enable/Disable Send button
-            const canSend = isClientReady && hasMessage && totalNumbers > 0;
-            sendBtn.disabled = !canSend;
+        // Update media preview
+        function updateMediaPreview(statusData) {
+            const mediaPreview = document.getElementById('mediaPreview');
+            mediaPreview.innerHTML = '';
             
-            if (canSend) {
-                document.getElementById('campaign-summary').textContent = 'Ready to launch campaign.';
+            if (statusData.hasImage) {
+                mediaPreview.innerHTML += `
+                    <div class="preview-item">
+                        <div class="preview-icon">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <div>
+                            <strong>Image</strong><br>
+                            <small>Ready for campaign</small>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (statusData.hasAudio) {
+                mediaPreview.innerHTML += `
+                    <div class="preview-item">
+                        <div class="preview-icon">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <div>
+                            <strong>Audio</strong><br>
+                            <small>Ready for campaign</small>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (statusData.hasVideo) {
+                mediaPreview.innerHTML += `
+                    <div class="preview-item">
+                        <div class="preview-icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <div>
+                            <strong>Video</strong><br>
+                            <small>Ready for campaign</small>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (mediaPreview.innerHTML === '') {
+                mediaPreview.innerHTML = '<p style="color: var(--gray-color); text-align: center; width: 100%;">No media uploaded yet</p>';
+            }
+        }
+
+        // Update campaign summary
+        function updateCampaignSummary(statusData) {
+            // Get contact count for selected party
+            fetch(`/numbers?party=${currentTargetParty}`)
+                .then(response => response.json())
+                .then(data => {
+                    const summaryDiv = document.getElementById('campaignSummary');
+                    const summaryType = document.getElementById('summaryType');
+                    const summaryTarget = document.getElementById('summaryTarget');
+                    const summaryCount = document.getElementById('summaryCount');
+                    const summaryMessage = document.getElementById('summaryMessage');
+                    const summaryMedia = document.getElementById('summaryMedia');
+                    
+                    // Map party codes to full names
+                    const partyNames = {
+                        'ALL': 'All Parties',
+                        'INC': 'INC Party',
+                        'BJP': 'BJP Party',
+                        'BRS': 'BRS Party'
+                    };
+                    
+                    summaryType.textContent = currentCampaignType.charAt(0).toUpperCase() + currentCampaignType.slice(1);
+                    summaryTarget.textContent = partyNames[currentTargetParty];
+                    summaryCount.textContent = data.total;
+                    
+                    // Message preview
+                    if (statusData.hasMessage) {
+                        const msgPreview = statusData.hasMessage ? 'Message saved' : 'No message';
+                        summaryMessage.textContent = msgPreview;
+                    } else {
+                        summaryMessage.textContent = 'No message';
+                    }
+                    
+                    // Media preview
+                    let mediaStatus = 'None';
+                    if (currentCampaignType === 'image' && statusData.hasImage) mediaStatus = 'Image ready';
+                    if (currentCampaignType === 'audio' && statusData.hasAudio) mediaStatus = 'Audio ready';
+                    if (currentCampaignType === 'video' && statusData.hasVideo) mediaStatus = 'Video ready';
+                    summaryMedia.textContent = mediaStatus;
+                    
+                    summaryDiv.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error updating campaign summary:', error);
+                });
+        }
+
+        // Setup all event listeners
+        function setupEventListeners() {
+            // Media type selector
+            document.querySelectorAll('.campaign-type[data-type]').forEach(element => {
+                element.addEventListener('click', function() {
+                    // Update media type selector
+                    document.querySelectorAll('.campaign-type').forEach(el => el.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (this.closest('#fileUploadArea')) {
+                        // For media upload
+                        currentMediaType = this.dataset.type;
+                        const fileTypeText = document.getElementById('fileTypeText');
+                        fileTypeText.textContent = this.dataset.type.charAt(0).toUpperCase() + this.dataset.type.slice(1);
+                        
+                        // Update file input accept attribute
+                        const fileInput = document.getElementById('mediaUpload');
+                        if (currentMediaType === 'image') fileInput.accept = 'image/*';
+                        if (currentMediaType === 'audio') fileInput.accept = 'audio/*';
+                        if (currentMediaType === 'video') fileInput.accept = 'video/*';
+                    } else {
+                        // For campaign type selector
+                        currentCampaignType = this.dataset.type;
+                        checkStatus(); // Update summary
+                    }
+                });
+            });
+            
+            // Party selector for campaign
+            document.querySelectorAll('.party-option').forEach(element => {
+                element.addEventListener('click', function() {
+                    document.querySelectorAll('.party-option').forEach(el => el.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTargetParty = this.dataset.party;
+                    checkStatus(); // Update summary
+                });
+            });
+            
+            // File upload
+            const fileUploadArea = document.getElementById('fileUploadArea');
+            const fileInput = document.getElementById('mediaUpload');
+            
+            fileUploadArea.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', async function() {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    const fileName = document.getElementById('fileName');
+                    const fileInfo = document.getElementById('fileInfo');
+                    
+                    fileName.textContent = file.name;
+                    fileInfo.style.display = 'block';
+                    
+                    // Upload file
+                    await uploadMedia(file);
+                }
+            });
+            
+            // Drag and drop for file upload
+            fileUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUploadArea.style.borderColor = 'var(--primary-color)';
+                fileUploadArea.style.background = 'rgba(37, 211, 102, 0.1)';
+            });
+            
+            fileUploadArea.addEventListener('dragleave', () => {
+                fileUploadArea.style.borderColor = 'var(--gray-color)';
+                fileUploadArea.style.background = 'var(--light-gray)';
+            });
+            
+            fileUploadArea.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                fileUploadArea.style.borderColor = 'var(--gray-color)';
+                fileUploadArea.style.background = 'var(--light-gray)';
+                
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    const fileName = document.getElementById('fileName');
+                    const fileInfo = document.getElementById('fileInfo');
+                    
+                    fileName.textContent = file.name;
+                    fileInfo.style.display = 'block';
+                    
+                    // Upload file
+                    await uploadMedia(file);
+                }
+            });
+            
+            // Add numbers button
+            document.getElementById('addNumbersBtn').addEventListener('click', addPhoneNumbers);
+            
+            // Clear numbers button
+            document.getElementById('clearNumbersBtn').addEventListener('click', clearPhoneNumbers);
+            
+            // Reload contacts button
+            document.getElementById('reloadContactsBtn').addEventListener('click', reloadContacts);
+            
+            // Clear media button
+            document.getElementById('clearMediaBtn').addEventListener('click', clearMedia);
+            
+            // Save message button
+            document.getElementById('saveMessageBtn').addEventListener('click', saveMessage);
+            
+            // Clear message button
+            document.getElementById('clearMessageBtn').addEventListener('click', () => {
+                document.getElementById('campaignMessage').value = '';
+                document.getElementById('messageStatus').style.display = 'none';
+                showAlert('Message cleared', 'warning');
+            });
+            
+            // Launch campaign button
+            document.getElementById('launchCampaignBtn').addEventListener('click', launchCampaign);
+        }
+
+        // Upload media file
+        async function uploadMedia(file) {
+            // Validate file type
+            let endpoint = '';
+            if (currentMediaType === 'image' && file.type.startsWith('image/')) {
+                endpoint = '/upload-image';
+            } else if (currentMediaType === 'audio' && file.type.startsWith('audio/')) {
+                endpoint = '/upload-audio';
+            } else if (currentMediaType === 'video' && file.type.startsWith('video/')) {
+                endpoint = '/upload-video';
             } else {
-                let reasons = [];
-                if (!isClientReady) reasons.push('Bot disconnected');
-                if (!hasMessage) reasons.push('Message missing');
-                if (totalNumbers === 0) reasons.push('No contacts');
-                document.getElementById('campaign-summary').textContent = `Disabled: ${reasons.join(', ')}.`;
+                showAlert(`Invalid file type for ${currentMediaType}. Please select the correct file type.`, 'error');
+                return;
             }
-        }
-
-        // --- ACTIONS ---
-
-        /**
-         * Handles adding numbers via API call.
-         */
-        async function addNumbers() {
-            const numbersText = document.getElementById('numbers-input').value.trim();
-            const party = document.getElementById('party-select-add').value;
             
-            if (!numbersText) {
-                showAlert('Please enter at least one phone number.', 'info');
+            // Validate file size (100MB)
+            if (file.size > 100 * 1024 * 1024) {
+                showAlert('File is too large. Maximum size is 100MB.', 'error');
                 return;
             }
-
-            const numbers = numbersText.split('\n').map(n => n.trim()).filter(n => n.length > 0);
             
-            document.getElementById('add-numbers-btn').disabled = true;
-            log(`Attempting to add ${numbers.length} numbers to ${party}...`, 'text-blue-300');
-
-            try {
-                const response = await fetch(API_URLS.ADD_NUMBERS, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ numbers, party })
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    showAlert(`Successfully added ${result.added} numbers to ${party}. ${result.invalid} invalid numbers ignored.`, 'success');
-                    log(`Success: ${result.added} numbers added. Total contacts: ${result.total}`, 'text-green-300');
-                    document.getElementById('numbers-input').value = ''; // Clear input
-                    updateDashboard();
-                } else {
-                    showAlert(`Failed to add numbers: ${result.error}`, 'error');
-                    log(`Error: ${result.error}`, 'text-red-500');
-                }
-            } catch (error) {
-                showAlert('Network error during contact upload.', 'error');
-                log(`Network Error: ${error.message}`, 'text-red-500');
-            } finally {
-                document.getElementById('add-numbers-btn').disabled = false;
-            }
-        }
-
-        /**
-         * Clears all contacts in the database.
-         */
-        async function clearAllNumbers() {
-             if (!confirm('Are you sure you want to clear ALL contact lists? This action cannot be undone.')) {
-                return;
-            }
-
-            log('Clearing all contacts...', 'text-yellow-300');
-
-            try {
-                const response = await fetch(API_URLS.CLEAR_NUMBERS, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ party: 'ALL' }) 
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    showAlert(result.message, 'success');
-                    log('All contact lists cleared successfully.', 'text-green-300');
-                    updateDashboard();
-                } else {
-                    showAlert(`Failed to clear numbers: ${result.error}`, 'error');
-                    log(`Error clearing numbers: ${result.error}`, 'text-red-500');
-                }
-            } catch (error) {
-                showAlert('Network error during number clearing.', 'error');
-                log(`Network Error: ${error.message}`, 'text-red-500');
-            }
-        }
-
-
-        /**
-         * Handles setting the campaign message.
-         */
-        async function setMessage() {
-            const message = document.getElementById('campaign-message-input').value.trim();
-            if (!message) {
-                showAlert('Message cannot be empty.', 'info');
-                return;
-            }
-
-            document.getElementById('set-message-btn').disabled = true;
-            log('Saving campaign message...', 'text-blue-300');
-
-            try {
-                const response = await fetch(API_URLS.SET_MESSAGE, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message })
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    showAlert('Campaign message saved successfully.', 'success');
-                    log('Campaign message set.', 'text-green-300');
-                    updateDashboard();
-                } else {
-                    showAlert(`Failed to set message: ${result.error}`, 'error');
-                    log(`Error setting message: ${result.error}`, 'text-red-500');
-                }
-            } catch (error) {
-                showAlert('Network error during message saving.', 'error');
-                log(`Network Error: ${error.message}`, 'text-red-500');
-            } finally {
-                document.getElementById('set-message-btn').disabled = false;
-            }
-        }
-
-        /**
-         * Handles file upload for media (image or audio).
-         * @param {string} type 'image' or 'audio'
-         */
-        async function handleFileUpload(type) {
-            const input = document.getElementById(`${type}-upload`);
-            if (input.files.length === 0) return;
-
-            const file = input.files[0];
             const formData = new FormData();
-            formData.append(type, file);
+            formData.append(currentMediaType, file);
             
-            const statusEl = document.getElementById(`${type}-status`).querySelector('span');
-            const url = type === 'image' ? API_URLS.UPLOAD_IMAGE : API_URLS.UPLOAD_AUDIO;
-
-            statusEl.textContent = `Status: Uploading ${file.name}...`;
-            log(`Uploading ${type} file: ${file.name}...`, 'text-blue-300');
-
             try {
-                const response = await fetch(url, {
+                showAlert(`Uploading ${currentMediaType}...`, 'warning');
+                
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     body: formData
                 });
+                
                 const result = await response.json();
-
+                
                 if (result.success) {
-                    showAlert(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded: ${result.filename}`, 'success');
-                    log(`Success: ${type} set to ${result.filename}`, 'text-green-300');
-                    updateDashboard();
-                } else {
-                    showAlert(`Failed to upload ${type}: ${result.error}`, 'error');
-                    log(`Error uploading ${type}: ${result.error}`, 'text-red-500');
-                }
-            } catch (error) {
-                showAlert(`Network error during ${type} upload.`, 'error');
-                log(`Network Error: ${error.message}`, 'text-red-500');
-            }
-        }
-
-        // Attach event listeners for file uploads
-        document.getElementById('image-upload').addEventListener('change', () => handleFileUpload('image'));
-        document.getElementById('audio-upload').addEventListener('change', () => handleFileUpload('audio'));
-
-        /**
-         * Clears the set campaign media.
-         * @param {string} type 'image' or 'audio'
-         */
-        async function clearMedia(type) {
-            log(`Clearing ${type} media...`, 'text-yellow-300');
-            try {
-                const response = await fetch(API_URLS.CLEAR_MEDIA, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type })
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    showAlert(`${type.charAt(0).toUpperCase() + type.slice(1)} media cleared.`, 'success');
-                    log(`${type} cleared.`, 'text-green-300');
-                    updateDashboard();
-                } else {
-                    showAlert(`Failed to clear ${type}: ${result.error}`, 'error');
-                    log(`Error clearing ${type}: ${result.error}`, 'text-red-500');
-                }
-            } catch (error) {
-                showAlert('Network error during media clearing.', 'error');
-                log(`Network Error: ${error.message}`, 'text-red-500');
-            }
-        }
-
-        /**
-         * Launches the campaign.
-         */
-        async function sendCampaign() {
-            const campaignType = document.getElementById('campaign-type').value;
-            const party = document.getElementById('campaign-party').value;
-            
-            if (!isClientReady) {
-                showAlert('Bot is not connected. Cannot send campaign.', 'error');
-                return;
-            }
-            if (!hasMessage) {
-                 showAlert('Please set a campaign message first.', 'error');
-                 return;
-            }
-            if ((campaignType === 'image' && !hasImage) || (campaignType === 'audio' && !hasAudio)) {
-                showAlert(`Please upload the required ${campaignType} media file.`, 'error');
-                return;
-            }
-
-            document.getElementById('send-campaign-btn').disabled = true;
-            log(`Launching ${campaignType.toUpperCase()} campaign to ${party} party...`, 'text-whatsapp');
-            showAlert(`Sending campaign to ${party}... Check log for progress.`, 'info');
-
-            try {
-                const response = await fetch(API_URLS.SEND_CAMPAIGN, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ campaignType, party })
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    const data = result.data;
-                    const logColor = data.failed > 0 ? 'text-yellow-400' : 'text-green-400';
-                    log(`Campaign to ${data.party} finished: ${data.success}/${data.total} successful.`, logColor);
+                    showAlert(`${currentMediaType.charAt(0).toUpperCase() + currentMediaType.slice(1)} uploaded successfully!`, 'success');
+                    checkStatus(); // Update status to show new media
                     
-                    data.results.forEach(res => {
-                        const statusColor = res.status === 'success' ? 'text-green-500' : 'text-red-500';
-                        const statusMsg = res.status === 'success' ? 'SENT' : `FAILED (${res.error.substring(0, 50)}...)`;
-                        log(`[RESULT] ${res.number}: ${statusMsg}`, statusColor);
-                    });
-
-                    showAlert(`Campaign completed! ${data.success} successful, ${data.failed} failed.`, 'success');
+                    // Reset file input
+                    document.getElementById('mediaUpload').value = '';
+                    document.getElementById('fileName').textContent = 'None';
+                    document.getElementById('fileInfo').style.display = 'none';
                 } else {
-                    showAlert(`Campaign failed to start: ${result.error}`, 'error');
-                    log(`FATAL Error: ${result.error}`, 'text-red-500');
+                    showAlert(`Upload failed: ${result.error}`, 'error');
                 }
             } catch (error) {
-                showAlert('Network error during campaign launch.', 'error');
-                log(`Network Error: ${error.message}`, 'text-red-500');
-            } finally {
-                document.getElementById('send-campaign-btn').disabled = false;
-                updateDashboard(); // Final refresh
+                showAlert(`Upload error: ${error.message}`, 'error');
             }
         }
 
-        // --- INITIALIZATION ---
-
-        // Fetch status immediately and then every 10 seconds
-        window.onload = () => {
-            log('Frontend initialized. Checking backend status...');
-            updateDashboard();
-            setInterval(updateDashboard, 10000); // Poll status every 10 seconds
-        };
-        
-        // Custom replacement for browser's confirm()
-        function confirm(message) {
-            return window.confirm(message);
+        // Add phone numbers
+        async function addPhoneNumbers() {
+            const numbersText = document.getElementById('phoneNumbers').value;
+            const party = document.getElementById('partySelect').value;
+            
+            if (!numbersText.trim()) {
+                showAlert('Please enter phone numbers', 'warning');
+                return;
+            }
+            
+            // Parse numbers (support comma, newline, space separated)
+            const numbers = numbersText
+                .split(/[\n,]+/)
+                .map(num => num.trim())
+                .filter(num => num.length > 0);
+            
+            if (numbers.length === 0) {
+                showAlert('No valid phone numbers found', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/add-numbers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ numbers, party })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(`Added ${result.added} numbers to ${party} party`, 'success');
+                    
+                    // Update numbers info
+                    document.getElementById('addedCount').textContent = result.added;
+                    document.getElementById('invalidCount').textContent = result.invalid;
+                    document.getElementById('numbersInfo').style.display = 'block';
+                    
+                    // Clear input
+                    document.getElementById('phoneNumbers').value = '';
+                    
+                    // Load updated stats
+                    loadStats();
+                    checkStatus();
+                    
+                    if (result.invalid > 0) {
+                        showAlert(`${result.invalid} numbers were invalid and not added`, 'warning');
+                    }
+                } else {
+                    showAlert(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`Network error: ${error.message}`, 'error');
+            }
         }
 
+        // Clear phone numbers
+        async function clearPhoneNumbers() {
+            const party = document.getElementById('partySelect').value;
+            const confirmation = confirm(`Are you sure you want to clear ALL numbers for ${party} party? This action cannot be undone.`);
+            
+            if (!confirmation) return;
+            
+            try {
+                const response = await fetch('/clear-numbers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ party })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    
+                    // Hide numbers info
+                    document.getElementById('numbersInfo').style.display = 'none';
+                    
+                    // Load updated stats
+                    loadStats();
+                    checkStatus();
+                } else {
+                    showAlert(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Reload contacts from files
+        async function reloadContacts() {
+            try {
+                const response = await fetch('/reload-contacts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    
+                    // Load updated stats
+                    loadStats();
+                    checkStatus();
+                } else {
+                    showAlert(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Clear media
+        async function clearMedia() {
+            const confirmation = confirm(`Are you sure you want to clear the ${currentMediaType}?`);
+            
+            if (!confirmation) return;
+            
+            try {
+                const response = await fetch('/clear-media', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ type: currentMediaType })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    checkStatus(); // Update status
+                } else {
+                    showAlert(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Save message
+        async function saveMessage() {
+            const message = document.getElementById('campaignMessage').value.trim();
+            
+            if (!message) {
+                showAlert('Please enter a message', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/set-message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('Message saved successfully!', 'success');
+                    document.getElementById('messageStatus').style.display = 'block';
+                    checkStatus(); // Update status
+                } else {
+                    showAlert(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Launch campaign
+        async function launchCampaign() {
+            // Check if connected
+            if (!isConnected) {
+                showAlert('WhatsApp is not connected. Please scan QR code first.', 'error');
+                return;
+            }
+            
+            // Check if there's a message
+            const message = document.getElementById('campaignMessage').value.trim();
+            if (!message && currentCampaignType === 'text') {
+                showAlert('Please save a message before launching campaign', 'warning');
+                return;
+            }
+            
+            // Confirm before sending
+            const confirmation = confirm(`Launch ${currentCampaignType} campaign to ${currentTargetParty} party?`);
+            if (!confirmation) return;
+            
+            // Show progress
+            const progressContainer = document.getElementById('campaignProgress');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            progressContainer.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressText.textContent = '0%';
+            
+            // Disable launch button
+            const launchBtn = document.getElementById('launchCampaignBtn');
+            const originalText = launchBtn.innerHTML;
+            launchBtn.innerHTML = '<span class="spinner"></span> Sending...';
+            launchBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/send-campaign', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        campaignType: currentCampaignType,
+                        party: currentTargetParty
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update progress
+                    progressFill.style.width = '100%';
+                    progressText.textContent = '100%';
+                    
+                    // Show results
+                    showCampaignResults(result.data);
+                    
+                    showAlert(`Campaign completed! ${result.data.success} sent, ${result.data.failed} failed`, 'success');
+                } else {
+                    showAlert(`Campaign failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`Network error: ${error.message}`, 'error');
+            } finally {
+                // Re-enable launch button
+                launchBtn.innerHTML = originalText;
+                launchBtn.disabled = false;
+                
+                // Hide progress after 3 seconds
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Show campaign results
+        function showCampaignResults(data) {
+            const resultsDiv = document.getElementById('campaignResults');
+            const resultsBody = document.getElementById('resultsBody');
+            const totalResults = document.getElementById('totalResults');
+            const successResults = document.getElementById('successResults');
+            const failedResults = document.getElementById('failedResults');
+            const resultsTable = document.getElementById('resultsTable');
+            
+            // Clear previous results
+            resultsBody.innerHTML = '';
+            
+            // Add new results
+            data.results.forEach(result => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${result.number}</td>
+                    <td class="${result.status === 'success' ? 'status-success' : 'status-failed'}">
+                        ${result.status === 'success' ? '✓ Success' : '✗ Failed'}
+                    </td>
+                    <td>${result.error || 'Sent successfully'}</td>
+                `;
+                
+                resultsBody.appendChild(row);
+            });
+            
+            // Update totals
+            totalResults.textContent = data.total;
+            successResults.textContent = data.success;
+            failedResults.textContent = data.failed;
+            
+            // Show results
+            resultsTable.style.display = 'table';
+            resultsDiv.style.display = 'block';
+        }
+
+        // Show alert message
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'success'}`;
+            
+            let icon = '';
+            if (type === 'success') icon = '<i class="fas fa-check-circle"></i>';
+            if (type === 'error') icon = '<i class="fas fa-exclamation-circle"></i>';
+            if (type === 'warning') icon = '<i class="fas fa-exclamation-triangle"></i>';
+            
+            alertDiv.innerHTML = `${icon} ${message}`;
+            
+            alertContainer.appendChild(alertDiv);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+            
+            // Scroll to alert
+            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     </script>
 </body>
 </html>

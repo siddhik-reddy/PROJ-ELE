@@ -1,9 +1,6 @@
 WhatsApp Campaign Bot - BADSI SARPANCH ELECTIONS
-
 A professional WhatsApp campaign management bot designed for political campaigns with multi-party contact management, media support, and privacy features.
-
 📋 Features
-
 🎪 Party Management
 •	Multi-party system: ALL, INC, BJP, BRS
 •	Separate contact lists for each party
@@ -15,3 +12,16 @@ A professional WhatsApp campaign management bot designed for political campaigns
 •	Silent mode - logs incoming messages without responses
 •	Auto-reconnect on disconnection
 
+🚀 Quick Start
+
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
+- Active WhatsApp account
+
+### Installation
+
+1. **Clone or download the bot**
+```bash
+git clone <repository-url>
+cd whatsapp-campaign-bot
